@@ -7,7 +7,6 @@ const hb = require("express-handlebars");
 const csurf = require("csurf");
 const db = require("./petitiondb/db");
 const petitioners = require("./petitiondb/db");
-// const canvas = document.getElemenrById("canvas");
 
 app.engine("handlebars", hb({ defaultLayout: "main" }));
 app.set("view engine", "handlebars");
@@ -27,6 +26,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(csurf());
 // step 4:put this middlw func after all the previous csurf stuff
 app.use(function (req, res, next) {
+    console.log("req.session in middleware:", req.session);
     res.locals.csrfToken = req.csrfToken();
     next();
 });
@@ -38,7 +38,7 @@ app.use(function (req, res, next) {
 app.get("/petition", (req, res) => {
     //IF the user has already signed the petition, it redirects to /thanks (→ check your cookie for this)
     //IF user has not yet signed, it renders petition.handlebars template
-    res.render("petition", { layout: "main" });
+    (req.session.name = "adobo"), res.render("petition", { layout: "main" });
 });
 
 app.post("/petition", (req, res) => {
@@ -82,7 +82,6 @@ app.get("/signers", (req, res) => {
         console.log(results);
         res.render("signers", {
             title: "signers",
-            // petitioners: `${firstname} ${lastname} ${signature}`,
             petitioners,
         });
     });
