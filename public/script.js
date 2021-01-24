@@ -5,6 +5,7 @@ const context = canvas.getContext("2d");
 let isDrawing = false;
 let x = 0;
 let y = 0;
+let sigid = document.getElementById("sig-id");
 
 // event.offsetX, event.offsetY gives the (x,y) offset from the edge of the canvas.
 
@@ -29,6 +30,7 @@ window.addEventListener("mouseup", (e) => {
         x = 0;
         y = 0;
         isDrawing = false;
+        sigid.value = canvas.toDataURL();
     }
 });
 
