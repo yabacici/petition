@@ -6,8 +6,9 @@ const hb = require("express-handlebars");
 // step 1: require CRSURF for protecttion
 const csurf = require("csurf");
 const db = require("./petitiondb/db");
-const userdb = require("./userdb/db");
-
+const userdb = require("./userdb/userdb");
+let { hash, compare } = require("./bc");
+console.log(hash);
 app.engine("handlebars", hb({ defaultLayout: "main" }));
 app.set("view engine", "handlebars");
 
@@ -38,7 +39,7 @@ app.use(function (req, res, next) {
 });
 
 app.use((req, res, next) => {
-    if (req.url == "/petition") {
+    if (req.url == "/petition" || req.url == "/register") {
         next();
     } else {
         if (req.session.signatureId) {
@@ -77,8 +78,12 @@ app.post("/petition", (req, res) => {
     // if (first && last && signature) {
     if (req.body) {
         db.addSignatures(
-            req.body.firstname,
-            req.body.lastname,
+            // alter your route so that you pass userId from the cookie to your query
+            // instead of first and last name
+
+            // req.body.firstname,
+            // req.body.lastname,
+            req.session.userId,
             req.body.signature
         )
             .then((results) => {
@@ -102,10 +107,6 @@ app.post("/petition", (req, res) => {
     }
 });
 
-app.get("/", (req, res) => {
-    res.redirect("/petition");
-});
-
 app.get("/thanks", (req, res, { rows }) => {
     // renders the thanks.handlebars template
     // However this should only be visible to those that have signed, so:
@@ -115,11 +116,13 @@ app.get("/thanks", (req, res, { rows }) => {
         const promiseArray = [
             db.pullSignatures(req.session.signatureId),
             db.numOfSig({ rows }),
+            db.getAllSignatures(),
         ];
         Promise.all(promiseArray)
             .then((results) => {
-                let signature = results[0].rows[0].signature;
-                let count = results[1].rows[0].count;
+                const signature = results[0].rows[0].signature;
+                const count = results[1].rows[0].count;
+                const arr = results[2].rows[0];
 
                 return res.render("thanks", {
                     title: "Thank You",
@@ -127,6 +130,7 @@ app.get("/thanks", (req, res, { rows }) => {
                     rows,
                     signature,
                     count,
+                    arr,
                 });
             })
             .catch((err) => {
@@ -142,12 +146,6 @@ app.get("/signers", (req, res) => {
     // SELECT first and last values of every person that has signed from the database and pass them to signers.handlebars
     // SELECT the number of people that have signed the petition from the db → I recommend looking into what COUNT can do for you here ;)
     // const { firstname, lastname, signature } = req.body;
-
-    // if (req.session.signatureId) {
-    //     db.getAllSignatures().then(({ rows }) => {
-    //         console.log(rows);
-    //     });
-    // }
 
     let arr = [];
 
@@ -176,6 +174,12 @@ app.get("/signers", (req, res) => {
 });
 
 app.get("/register", (req, res) => {
+    req.on("error", (err) => {
+        console.log("error on req object: ", err);
+    });
+    res.on("error", (err) => {
+        console.log("error on res object: ", err);
+    });
     res.render("register", {
         layout: "main",
         title: "Register",
@@ -188,6 +192,26 @@ app.post("/register", (req, res) => {
     // insert a row in the USERS table (new table) -> see 3. for table structure
     // if the insert is successful, add userId in a cookie (value should be the id created by postgres when the row was inserted).
     // if insert fails, re-render template with an error message
+    console.log(req.body);
+    console.log(req.body.password);
+
+    const { firstname, lastname, email, password } = req.body;
+
+    hash(req.body.password).then((hashedPw) => {
+        console.log("hashedPw in /register:", hashedPw);
+        // we'll be wanting to add all user information plus the hashed PW into our db
+        // if this worked successfully we want to redirect the user
+        // if sth went wrong we want to render an error msg to our user
+        userdb
+            .addRegister(firstname, lastname, email, password)
+            .then((results) => {
+                // console.log("Another user joined");
+                req.session.userId = results.rows[0].id;
+                res.redirect("/petition");
+            })
+            .catch((err) => console.log("err in registration:", err));
+        res.redirect("/register");
+    });
 });
 
 app.get("/login", (req, res) => {
@@ -197,6 +221,31 @@ app.get("/login", (req, res) => {
     });
 });
 
-app.post("/login", (req, res) => {});
+app.post("/login", (req, res) => {
+    req.on("error", (err) => {
+        console.log("error on req object: ", err);
+    });
+    res.on("error", (err) => {
+        console.log("error on res object: ", err);
+    });
+    // now we want to compare values
+    // go to you db, check if the email the user provided exists,
+    // and if yes retrieve the stored hash and pass that to compare are the second argument
+
+    userdb.getInfoByEmail(req.body.email).then((results) => {
+        if (compare(req.body.password, results.rows[0].id)) {
+            // if (compare(hashedPw, results.rows[0].id)) {
+            req.session.userId = results.rows[0].id;
+            res.redirect("/register");
+        } else {
+            console.log("err");
+            res.render("login", {
+                layout: "main",
+                title: "Log in",
+                error: "Something went wrong, please enter your password",
+            });
+        }
+    });
+});
 
 app.listen(8080, () => console.log("Petition Server running"));
