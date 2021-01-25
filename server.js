@@ -6,7 +6,7 @@ const hb = require("express-handlebars");
 // step 1: require CRSURF for protecttion
 const csurf = require("csurf");
 const db = require("./petitiondb/db");
-// const petitioners = require("./petitiondb/db");
+const userdb = require("./userdb/db");
 
 app.engine("handlebars", hb({ defaultLayout: "main" }));
 app.set("view engine", "handlebars");
@@ -53,12 +53,11 @@ app.get("/petition", (req, res) => {
     // IF the user has already signed the petition, it redirects to /thanks (→ check your cookie for this)
     // IF user has not yet signed, it renders petition.handlebars template
     // (req.session.name = "adobo"), res.render("petition", { layout: "main" });
-    if (req.session.signatureId) {
-        res.render("petition", {
-            layout: "main",
-            title: "Petition",
-        });
-    }
+
+    res.render("petition", {
+        layout: "main",
+        title: "Petition",
+    });
 });
 
 app.post("/petition", (req, res) => {
@@ -75,25 +74,36 @@ app.post("/petition", (req, res) => {
     // promise/ addSignatures is async
     // .then runs once the query is finished (no errors)
     // we use "firstname" and "lastname" bcuz this is what the terminal is using
-    db.addSignatures(req.body.firstname, req.body.lastname, req.body.signature)
-        .then((results) => {
-            console.log(results);
-            // res.redirect("/thanks");
-            req.session.signatureId = results.rows[0].id;
-            // console.log(req.session);
-            res.cookie("submitted", true);
-            res.cookie("submissionError", false);
-            res.redirect("/thanks");
-        })
-        .catch((err) => {
-            console.log("error in addSignatures: ", err);
-            res.cookie("submissionError", true);
-            res.render("petition", {
-                title: "Petition",
-                layout: "main",
-                errorMessage: "Something went WRONG! Fill EVERY field!",
+    // if (first && last && signature) {
+    if (req.body) {
+        db.addSignatures(
+            req.body.firstname,
+            req.body.lastname,
+            req.body.signature
+        )
+            .then((results) => {
+                console.log(results);
+                // res.redirect("/thanks");
+                req.session.signatureId = results.rows[0].id;
+                // console.log(req.session);
+                res.cookie("submitted", true);
+                res.cookie("submissionError", false);
+                res.redirect("/thanks");
+            })
+            .catch((err) => {
+                console.log("error in addSignatures: ", err);
+                res.cookie("submissionError", true);
+                res.render("petition", {
+                    title: "Petition",
+                    layout: "main",
+                    errorMessage: "Something went WRONG! Fill EVERY field!",
+                });
             });
-        });
+    }
+});
+
+app.get("/", (req, res) => {
+    res.redirect("/petition");
 });
 
 app.get("/thanks", (req, res, { rows }) => {
@@ -133,11 +143,60 @@ app.get("/signers", (req, res) => {
     // SELECT the number of people that have signed the petition from the db → I recommend looking into what COUNT can do for you here ;)
     // const { firstname, lastname, signature } = req.body;
 
-    if (req.session.signatureId) {
-        db.getAllSignatures().then(({ rows }) => {
-            console.log(rows);
+    // if (req.session.signatureId) {
+    //     db.getAllSignatures().then(({ rows }) => {
+    //         console.log(rows);
+    //     });
+    // }
+
+    let arr = [];
+
+    db.getAllSignatures()
+        .then((results) => {
+            let fullName = results.rows.forEach((x) => {
+                let xName = x.first + " " + x.last;
+                arr.push(xName);
+                return arr;
+            });
+            console.log("results1: ", arr);
+            // console.log("results2: ", arr[1]);
+            return arr;
+        })
+        .then((arr) => {
+            res.render("signers", {
+                layout: "main",
+                title: "signers",
+                arr,
+            });
+            console.log("arr:", arr);
+        })
+        .catch((err) => {
+            console.log("error in getAllSignatures:", err);
         });
-    }
 });
+
+app.get("/register", (req, res) => {
+    res.render("register", {
+        layout: "main",
+        title: "Register",
+    });
+});
+
+app.post("/register", (req, res) => {
+    // grab the user input and read it on the server
+    // hash the password that the user typed and THEN
+    // insert a row in the USERS table (new table) -> see 3. for table structure
+    // if the insert is successful, add userId in a cookie (value should be the id created by postgres when the row was inserted).
+    // if insert fails, re-render template with an error message
+});
+
+app.get("/login", (req, res) => {
+    res.render("login", {
+        layout: "main",
+        title: "Log in",
+    });
+});
+
+app.post("/login", (req, res) => {});
 
 app.listen(8080, () => console.log("Petition Server running"));

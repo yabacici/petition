@@ -1,7 +1,4 @@
-
-    {{!-- <h2{{title}}</h2> --}}
-   
-<h2>Please sign our petition, and be a part of something meaningful!</h2>
+   <h2>Please sign our petition, and be a part of something meaningful!</h2>
     <form method='POST' style="display: flex; flex-direction: column; justify-content: space-between; width: 30%; height: 30%;">
         <input type='text' name='firstname' placeholder='First Name'>
         <input type='text' name='lastname' placeholder='Last Name'>
@@ -9,8 +6,8 @@
          {{!-- step 3 put this hidden infup fiel in every single form --}}
         <input type="hidden" name="_csrf" value="{{csrfToken}}">
         <canvas id="canvas" width="200" height="200" style="border:3px dashed #000000;"></canvas>
-        <p>Sign here</p>
-<button> submit </button>
+        {{!-- <p>Sign here</p> --}}
+    <button> submit </button>
 
     </form> 
 

@@ -15,7 +15,6 @@ module.exports.addSignatures = (first, last, signatures) => {
 // INSERT INTO signatures ( first, last, signature) VALUES ($1, $2, $3);
 module.exports.getAllSignatures = () => {
     const q = `SELECT first, last FROM signatures`;
-
     return db.query(q);
 };
 
