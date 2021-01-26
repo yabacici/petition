@@ -5,13 +5,26 @@ const secrets = require("./secrets");
 const hb = require("express-handlebars");
 // step 1: require CRSURF for protecttion
 const csurf = require("csurf");
-const db = require("./petitiondb/db");
-const userdb = require("./userdb/userdb");
+const db = require("./db");
 let { hash, compare } = require("./bc");
 console.log(hash);
+
+//heroku
+// let cookie_sec;
+// let cookie_sec;
+// if (process.env.cookie_secret) {
+//     // we are in production
+//     cookie_sec = process.env.cookie_secret;
+// } else {
+//     // we are local and will get our secrets out of the secret file :)
+//     // careful your secrets require statement might look different
+//     cookie_sec = require("./secrets.json").cookie_secret;
+// }
+
 app.engine("handlebars", hb({ defaultLayout: "main" }));
 app.set("view engine", "handlebars");
 
+// Clickjacking
 app.use(function (req, res, next) {
     res.setHeader("x-frame-options", "deny");
     next();
@@ -21,6 +34,8 @@ app.use(express.static("./public"));
 
 app.use(
     cookieSession({
+        name: "session",
+        keys: ["key1", "key2"],
         maxAge: 1000 * 6 * 50 * 14,
         secret: secrets.sessionSecret,
         // 2 weeks
@@ -37,19 +52,112 @@ app.use(function (req, res, next) {
     res.locals.csrfToken = req.csrfToken();
     next();
 });
+// part 3 app use version
+// app.use((req, res, next) => {
+//     if (req.url == "/petition" || req.url == "/register") {
+//         next();
+//     } else {
+//         if (req.session.signatureId) {
+//             next();
+//         } else {
+//             res.redirect("/petition");
+//         }
+//     }
+// });
 
+// part4
 app.use((req, res, next) => {
-    if (req.url == "/petition" || req.url == "/register") {
+    if (req.url == "/petition" && !req.session.userId) {
+        return res.redirect("/register");
+    } else if (req.url == "/petition" && !req.session.logIn) {
+        return res.redirect("/login");
+    } else if (req.url == "/register" && !req.session.userId) {
         next();
-    } else {
-        if (req.session.signatureId) {
-            next();
-        } else {
-            res.redirect("/petition");
-        }
     }
 });
 
+app.get("/register", (req, res) => {
+    req.on("error", (err) => {
+        console.log("error on req object: ", err);
+    });
+    res.on("error", (err) => {
+        console.log("error on res object: ", err);
+    });
+    res.render("register", {
+        layout: "main",
+        title: "Register",
+    });
+});
+
+app.get("/profile", (req, res) => {
+    console.log("this is the profile page");
+    res.render("profile", {
+        layout: "main",
+        title: "Profile Page",
+    });
+});
+
+app.post("/register", (req, res) => {
+    // grab the user input and read it on the server
+    // hash the password that the user typed and THEN
+    // insert a row in the USERS table (new table) -> see 3. for table structure
+    // if the insert is successful, add userId in a cookie (value should be the id created by postgres when the row was inserted).
+    // if insert fails, re-render template with an error message
+    console.log(req.body);
+    console.log(req.body.password);
+
+    const { firstname, lastname, email, password } = req.body;
+
+    hash(req.body.password).then((hashedPw) => {
+        console.log("hashedPw in /register:", hashedPw);
+        // we'll be wanting to add all user information plus the hashed PW into our db
+        // if this worked successfully we want to redirect the user
+        // if sth went wrong we want to render an error msg to our user
+        db.addRegister(firstname, lastname, email, password)
+            .then((results) => {
+                // console.log("Another user joined");
+                req.session.userId = results.rows[0].id;
+                res.redirect("/petition");
+            })
+            .catch((err) => console.log("err in registration:", err));
+        res.redirect("/register");
+    });
+});
+
+app.get("/login", (req, res) => {
+    res.render("login", {
+        layout: "main",
+        title: "Log in",
+    });
+});
+
+app.post("/login", (req, res) => {
+    req.on("error", (err) => {
+        console.log("error on req object: ", err);
+    });
+    res.on("error", (err) => {
+        console.log("error on res object: ", err);
+    });
+    // now we want to compare values
+    // go to you db, check if the email the user provided exists,
+    // and if yes retrieve the stored hash and pass that to compare are the second argument
+
+    db.getInfoByEmail(req.body.email).then((results) => {
+        if (compare(req.body.password, results.rows[0].id)) {
+            // if (compare(hashedPw, results.rows[0].id)) {
+            //use compare method or &&
+            req.session.userId = results.rows[0].id;
+            res.redirect("/register");
+        } else {
+            console.log("err");
+            res.render("login", {
+                layout: "main",
+                title: "Log in",
+                error: "Something went wrong, please enter your password",
+            });
+        }
+    });
+});
 app.get("/petition", (req, res) => {
     // IF the user has already signed the petition, it redirects to /thanks (→ check your cookie for this)
     // IF user has not yet signed, it renders petition.handlebars template
@@ -172,80 +280,8 @@ app.get("/signers", (req, res) => {
             console.log("error in getAllSignatures:", err);
         });
 });
-
-app.get("/register", (req, res) => {
-    req.on("error", (err) => {
-        console.log("error on req object: ", err);
-    });
-    res.on("error", (err) => {
-        console.log("error on res object: ", err);
-    });
-    res.render("register", {
-        layout: "main",
-        title: "Register",
-    });
-});
-
-app.post("/register", (req, res) => {
-    // grab the user input and read it on the server
-    // hash the password that the user typed and THEN
-    // insert a row in the USERS table (new table) -> see 3. for table structure
-    // if the insert is successful, add userId in a cookie (value should be the id created by postgres when the row was inserted).
-    // if insert fails, re-render template with an error message
-    console.log(req.body);
-    console.log(req.body.password);
-
-    const { firstname, lastname, email, password } = req.body;
-
-    hash(req.body.password).then((hashedPw) => {
-        console.log("hashedPw in /register:", hashedPw);
-        // we'll be wanting to add all user information plus the hashed PW into our db
-        // if this worked successfully we want to redirect the user
-        // if sth went wrong we want to render an error msg to our user
-        userdb
-            .addRegister(firstname, lastname, email, password)
-            .then((results) => {
-                // console.log("Another user joined");
-                req.session.userId = results.rows[0].id;
-                res.redirect("/petition");
-            })
-            .catch((err) => console.log("err in registration:", err));
-        res.redirect("/register");
-    });
-});
-
-app.get("/login", (req, res) => {
-    res.render("login", {
-        layout: "main",
-        title: "Log in",
-    });
-});
-
-app.post("/login", (req, res) => {
-    req.on("error", (err) => {
-        console.log("error on req object: ", err);
-    });
-    res.on("error", (err) => {
-        console.log("error on res object: ", err);
-    });
-    // now we want to compare values
-    // go to you db, check if the email the user provided exists,
-    // and if yes retrieve the stored hash and pass that to compare are the second argument
-
-    userdb.getInfoByEmail(req.body.email).then((results) => {
-        if (compare(req.body.password, results.rows[0].id)) {
-            // if (compare(hashedPw, results.rows[0].id)) {
-            req.session.userId = results.rows[0].id;
-            res.redirect("/register");
-        } else {
-            console.log("err");
-            res.render("login", {
-                layout: "main",
-                title: "Log in",
-                error: "Something went wrong, please enter your password",
-            });
-        }
-    });
-});
-
-app.listen(8080, () => console.log("Petition Server running"));
+// with Heroku
+app.listen(process.env.PORT || 8080, () =>
+    console.log("Petition Server running")
+);
+// app.listen(8080, () => console.log("Petition Server running"));
