@@ -1,9 +1,21 @@
-<h1>Profile Page</h1>
-<form method='POST' style="display: flex; flex-direction: column; justify-content: space-between; width: 30%; height: 30%;">
+<h2>Profile Page</h2>
+{{!-- <form method='POST' style="display: flex; flex-direction: column; justify-content: space-between; width: 30%; height: 30%;">
         <input type='text' name='age' placeholder='age'>
         <input type='text' name='city' placeholder='city'>
         <input type='text' name='url' placeholder='homepage'>
         {{!-- <input type='text' name='password' placeholder='password'> --}}
          <input type="hidden" name="_csrf" value="{{csrfToken}}">
         <button>CONTINUE</button>
-</form> 
+</form>  --}}
+
+<form method="POST">
+        
+        <input type="text" name="age"><label for="age">Age</label>
+        <input type="text" name="city"><label for="city">City</label>
+        <input type="text" name="url"><label for="url">Website</label>
+        <input type="hidden" name="_csrf" value="{{csrfToken}}">
+        <button type="submit">CONTINUE</button>
+        
+</form>
+
+{{!-- {{#if errAdd}} <p>There was an error. Please try again.</p>{{/if}} --}}

@@ -1,7 +1,8 @@
-<form method='POST' style="display: flex; flex-direction: column; justify-content: space-between; width: 30%; height: 30%;">
-        <input type='text' name='email' placeholder='email'>
-        <input type='text' name='password' placeholder='password'>
-         <input type="hidden" name="_csrf" value="{{csrfToken}}">
-        <button>LOG IN</button>
-
-    </form> 
+<h2>LogIn Page</h2>
+<form method="POST">
+    <input type="text" name="email"> <label for="email">Email address</label>
+    <input type="text" name="password"><label for="password">Password</label>
+    <input type="hidden" name="_csrf" value="{{csrfToken}}">
+    <button type="submit">LOG IN</button>   
+</form>
+{{!-- {{#if errAdd}} <p>There was an error. Please try again.</p>{{/if}} --}}

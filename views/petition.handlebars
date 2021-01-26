@@ -1,4 +1,4 @@
-   <h2>Please sign our petition, and be a part of something meaningful!</h2>
+   {{!-- <h2>Please sign our petition, and be a part of something meaningful!</h2>
     <form method='POST' style="display: flex; flex-direction: column; justify-content: space-between; width: 30%; height: 30%;">
         {{!-- <input type='text' name='firstname' placeholder='First Name'> --}}
         <input type='text' name='lastname' placeholder='Last Name'>
@@ -12,4 +12,21 @@
     </form> 
 
 
-<script src="/script.js"></script>
+<script src="/script.js"></script> --}}
+
+
+
+<h2>PLEASE SIGN OUR PETITION </h2>
+    <form id= "form" method="POST">   
+    <input id= "canvas" type="hidden" name="signature"><canvas id="signature" width="200" height="100"></canvas>
+    <input type="hidden" name="_csrf" value="{{csrfToken}}">
+    <button>SUBMIT</button>
+    </form>
+
+
+
+{{!-- {{#if errAdd}} <p>Please fill everything correctly</p>{{/if}} --}}
+
+<script src="canvas.js"></script>
+
+{{!-- <script src="/script.js"></script> --}}

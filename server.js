@@ -6,7 +6,7 @@ const hb = require("express-handlebars");
 // step 1: require CRSURF for protecttion
 const csurf = require("csurf");
 const db = require("./db");
-const bc = require("./bc");
+// const bc = require("./bc");
 let { hash, compare } = require("./bc");
 console.log(hash);
 
@@ -47,40 +47,21 @@ app.use(express.urlencoded({ extended: false }));
 // step 2: csurf middleware AFTER cookie-session AND url.encoded
 // step 3: is in petition folder and all routes with POST
 app.use(csurf());
-// step 4:put this middlw func after all the previous csurf stuff
-app.use(function (req, res, next) {
-    // console.log("req.session in middleware:", req.session);
-    res.locals.csrfToken = req.csrfToken();
-    next();
-});
-// part 3 app use version
-app.use((req, res, next) => {
-    if (req.url == "/petition" || req.url == "/register") {
-        next();
-    } else {
-        if (req.session.signatureId) {
-            next();
-        } else {
-            res.redirect("/profile");
-        }
-    }
-});
 
-// part 3 version 2
+// part 3 app use version
 // app.use((req, res, next) => {
-//     if (req.url == "/register") {
+//     if (req.url == "/petition" || req.url == "/register") {
 //         next();
 //     } else {
-//         //if(req.cookies.signed)
-//         if (req.session.userId) {
+//         if (req.session.signatureId) {
 //             next();
 //         } else {
-//             return res.redirect("/register");
+//             res.redirect("/petition");
 //         }
 //     }
 // });
 
-// part4
+// part4;
 // app.use((req, res, next) => {
 //     if (req.url == "/petition" && !req.session.userId) {
 //         return res.redirect("/register");
@@ -90,6 +71,12 @@ app.use((req, res, next) => {
 //         next();
 //     }
 // });
+// step 4:put this middlw func after all the previous csurf stuff
+app.use(function (req, res, next) {
+    // console.log("req.session in middleware:", req.session);
+    res.locals.csrfToken = req.csrfToken();
+    next();
+});
 
 app.get("/profile", (req, res) => {
     console.log("this is the profile page");
@@ -97,6 +84,42 @@ app.get("/profile", (req, res) => {
         layout: "main",
         title: "Profile Page",
     });
+});
+
+// app.post("/profile", (req, res) => {
+//     db.insertUserProfile(
+//         req.body.age,
+//         req.body.city,
+//         req.body.url,
+//         req.session.userId
+//     )
+//         .then((results) => {
+//             req.session.userId = results.rows[0].id;
+//             res.redirect("/petition");
+//         })
+//         .catch((err) => {
+//             console.log("err in addProfile:", err);
+//         });
+// });
+
+app.post("/profile", (req, res) => {
+    const age = req.body.age;
+    const city = req.body.city;
+    const url = req.body.url;
+    const userId = req.session.userId;
+    // const errAdd = true;
+
+    if (url.startsWith("http") || url == "") {
+        db.insertUserProfile(age, city, url, userId).then(() => {
+            res.redirect("/petition");
+        });
+    } else {
+        res.render("profile", {
+            title: "Profile",
+            layout: "main",
+            err: "Please provide all information",
+        });
+    }
 });
 
 app.get("/register", (req, res) => {
@@ -124,16 +147,16 @@ app.post("/register", (req, res) => {
         // if sth went wrong we want to render an error msg to our user
         db.addRegister(firstname, lastname, email, hashedPw)
             .then((results) => {
+                // console.log("Another user joined");
                 req.session.userId = results.rows[0].id;
-                res.redirect("/petition");
-                return;
+                return res.redirect("/profile");
             })
             .catch((err) => {
                 console.log("err in registration:", err);
-                res.render("register", {
-                    title: "Register",
-                    layout: "main",
-                });
+                // res.render("register", {
+                //     title: "Register",
+                //     layout: "main",
+                // });
             });
     });
 });
