@@ -5,6 +5,7 @@ users;
 
 DROP TABLE IF EXISTS user_profiles;
 
+
 CREATE TABLE users(
       id SERIAL PRIMARY KEY,
       first VARCHAR(255) NOT NULL,

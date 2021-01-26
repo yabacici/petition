@@ -33,9 +33,9 @@ module.exports.numOfSig = () => {
 };
 
 // INSERT data into users table (in post /registration)
-module.exports.addRegister = (first, last, email, password) => {
+module.exports.addRegister = (first, last, email, hashedPw) => {
     const q = `INSERT INTO users (first, last, email, password) VALUES ($1,$2,$3,$4) RETURNING id`;
-    const params = [first, last, email, password];
+    const params = [first, last, email, hashedPw];
     return db.query(q, params);
 };
 

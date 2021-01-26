@@ -6,6 +6,7 @@ const hb = require("express-handlebars");
 // step 1: require CRSURF for protecttion
 const csurf = require("csurf");
 const db = require("./db");
+const bc = require("./bc");
 let { hash, compare } = require("./bc");
 console.log(hash);
 
@@ -53,47 +54,55 @@ app.use(function (req, res, next) {
     next();
 });
 // part 3 app use version
+app.use((req, res, next) => {
+    if (req.url == "/petition" || req.url == "/register") {
+        next();
+    } else {
+        if (req.session.signatureId) {
+            next();
+        } else {
+            res.redirect("/profile");
+        }
+    }
+});
+
+// part 3 version 2
 // app.use((req, res, next) => {
-//     if (req.url == "/petition" || req.url == "/register") {
+//     if (req.url == "/register") {
 //         next();
 //     } else {
-//         if (req.session.signatureId) {
+//         //if(req.cookies.signed)
+//         if (req.session.userId) {
 //             next();
 //         } else {
-//             res.redirect("/petition");
+//             return res.redirect("/register");
 //         }
 //     }
 // });
 
 // part4
-app.use((req, res, next) => {
-    if (req.url == "/petition" && !req.session.userId) {
-        return res.redirect("/register");
-    } else if (req.url == "/petition" && !req.session.logIn) {
-        return res.redirect("/login");
-    } else if (req.url == "/register" && !req.session.userId) {
-        next();
-    }
-});
-
-app.get("/register", (req, res) => {
-    req.on("error", (err) => {
-        console.log("error on req object: ", err);
-    });
-    res.on("error", (err) => {
-        console.log("error on res object: ", err);
-    });
-    res.render("register", {
-        layout: "main",
-        title: "Register",
-    });
-});
+// app.use((req, res, next) => {
+//     if (req.url == "/petition" && !req.session.userId) {
+//         return res.redirect("/register");
+//     } else if (req.url == "/petition" && !req.session.logIn) {
+//         return res.redirect("/login");
+//     } else if (req.url == "/register" && !req.session.userId) {
+//         next();
+//     }
+// });
 
 app.get("/profile", (req, res) => {
     console.log("this is the profile page");
     res.render("profile", {
         layout: "main",
         title: "Profile Page",
+    });
+});
+
+app.get("/register", (req, res) => {
+    res.render("./register", {
+        title: "Register",
+        layout: "main",
     });
 });
 
@@ -113,14 +122,19 @@ app.post("/register", (req, res) => {
         // we'll be wanting to add all user information plus the hashed PW into our db
         // if this worked successfully we want to redirect the user
         // if sth went wrong we want to render an error msg to our user
-        db.addRegister(firstname, lastname, email, password)
+        db.addRegister(firstname, lastname, email, hashedPw)
             .then((results) => {
-                // console.log("Another user joined");
                 req.session.userId = results.rows[0].id;
                 res.redirect("/petition");
+                return;
             })
-            .catch((err) => console.log("err in registration:", err));
-        res.redirect("/register");
+            .catch((err) => {
+                console.log("err in registration:", err);
+                res.render("register", {
+                    title: "Register",
+                    layout: "main",
+                });
+            });
     });
 });
 
