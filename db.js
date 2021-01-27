@@ -19,7 +19,6 @@ module.exports.getSignatures = () => {
 module.exports.addSignature = (signature, user_id) => {
     const q = `INSERT INTO signatures (signature, user_id)
     VALUES ($1, $2) RETURNING id`;
-
     const params = [signature, user_id];
     return db.query(q, params);
 };
@@ -85,7 +84,7 @@ module.exports.getAllData = () => {
     return db.query(q);
 };
 
-module.exports.getCity = (city) => {
+module.exports.getByCity = (city) => {
     const q = `SELECT users.first, users.last, user_profiles.age, user_profiles.city, user_profiles.url
     FROM signatures
     JOIN users

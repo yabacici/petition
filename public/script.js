@@ -1,12 +1,12 @@
-const canvas = document.getElementById("signature");
+const canvas = document.getElementById("canvas");
 console.log(canvas);
 const context = canvas.getContext("2d");
+let sigid = document.getElementById("sig-id");
 
 // When true, moving the mouse draws on the canvas
 let isDrawing = false;
 let x = 0;
 let y = 0;
-let sigid = document.getElementById("sig-id");
 
 // event.offsetX, event.offsetY gives the (x,y) offset from the edge of the canvas.
 

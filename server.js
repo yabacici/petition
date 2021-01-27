@@ -223,7 +223,6 @@ app.get("/petition", (req, res) => {
         res.redirect("/thanks");
     }
 });
-
 app.post("/petition", (req, res) => {
     // runs when the user submits their signature, i.e. clicks submit
     // attempt to INSERT all data to submit into a designated table into your database, you will get this data from req.body
@@ -231,42 +230,37 @@ app.post("/petition", (req, res) => {
     // IF there is no error
     // set cookie to remember that the user has signed (do this last → this logic will change in the future)
     // redirect to thank you page
-
     // input from user
-    console.log(req.body);
+    // console.log(req.body);
     // calling func, insert user input into our table
     // promise/ addSignatures is async
     // .then runs once the query is finished (no errors)
     // we use "firstname" and "lastname" bcuz this is what the terminal is using
-    // if (first && last && signature) {
-    if (req.body) {
-        db.addSignature(
-            // alter your route so that you pass userId from the cookie to your query
-            // instead of first and last name
-            // req.body.firstname,
-            // req.body.lastname,
-            req.session.userId,
-            req.body.signature
-        )
-            .then((results) => {
-                console.log(results);
-                // res.redirect("/thanks");
-                req.session.signatureId = results.rows[0].id;
-                // console.log(req.session);
-                // res.cookie("submitted", true);
-                // res.cookie("submissionError", false);
-                res.redirect("/thanks");
-            })
-            .catch((err) => {
-                console.log("error in addSignature: ", err);
-                res.cookie("submissionError", true);
-                res.render("petition", {
-                    title: "Petition",
-                    layout: "main",
-                    errorMessage: "Something went WRONG! Fill EVERY field!",
-                });
+
+    db.addSignature(
+        // alter your route so that you pass userId from the cookie to your query
+        // instead of first and last name
+        // req.body.firstname,
+        // req.body.lastname,
+        req.session.userId,
+        req.body.signature
+    )
+        .then((results) => {
+            // console.log(results);
+            // res.redirect("/thanks");
+            req.session.signatureId = results.rows[0].id;
+            res.redirect("/thanks");
+            return;
+        })
+        .catch((err) => {
+            console.log("error in addSignature: ", err);
+
+            res.render("petition", {
+                title: "Petition",
+                layout: "main",
+                errorMessage: "Something went WRONG! Fill EVERY field!",
             });
-    }
+        });
 });
 
 app.get("/thanks", (req, res) => {

@@ -1,31 +1,25 @@
-   {{!-- <h2>Please sign our petition, and be a part of something meaningful!</h2>
+   <h2>Please sign our petition, and be a part of something meaningful!</h2>
     <form method='POST' style="display: flex; flex-direction: column; justify-content: space-between; width: 30%; height: 30%;">
-        {{!-- <input type='text' name='firstname' placeholder='First Name'> --}}
-        <input type='text' name='lastname' placeholder='Last Name'>
-        {{!-- <input  id="sig-id" type='hidden' name='signature' placeholder='Signature'> --}}
+        <input  id="sig-id" type='hidden' name='signature'>
          {{!-- step 3 put this hidden infup fiel in every single form --}}
         <input type="hidden" name="_csrf" value="{{csrfToken}}">
-        {{!-- <canvas id="canvas" width="200" height="200" style="border:3px dashed #000000;"></canvas> --}}
-        {{!-- <p>Sign here</p> --}}
-    <button> submit </button>
-    </form> 
-<script src="/script.js"></script> --}}
+        <canvas id="canvas" width="200" height="200" style="border:3px dashed #000000;"></canvas>
+        <button type="submit">SUBMIT</button>  
+    </form>
+    <script src="/script.js"></script>
 
-
+{{!-- 
 
 <h2>PLEASE SIGN OUR PETITION </h2>
     {{!-- <form id= "form" method="POST">    --}} 
 
 
     <form method='POST' style="display: flex; flex-direction: column; justify-content: space-between; width: 30%; height: 30%;"></form> --}}
-    <input id= "sig-id" type="hidden" name="signature">
+    {{!-- <input id= "sig-id" type="hidden" name="signature">
     <p class="sign-here">Please sign here</p>
-    <canvas id="signature" width="200" height="200" ></canvas>
+    <canvas id="canvas" width="200" height="200" ></canvas>
     <input type="hidden" name="_csrf" value="{{csrfToken}}">
-    <button>SUBMIT</button>
-    </form>
+    <button  type="submit" >SUBMIT</button>
+    </form>  --}}
 {{!-- {{#if errAdd}} <p>Please fill everything correctly</p>{{/if}} --}}
 
-          
-
-<script src="/script.js"></script>

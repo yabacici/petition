@@ -4,9 +4,20 @@
     <h2>{{.}}</h2>
 {{/arr}}
 </ul> --}}
-<ul>
-{{#arr}}
+{{!-- <ul> --}}
+{{!-- {{#arr}}
     <p>{{first}} {{last}} {{age}}</p><a href="/signers/{{city}}">{{city}}</a><a href="{{url}}">Website</a>
 
-{{/arr}} 
-</ul>
+{{/arr}}  --}}
+{{!-- </ul> --}}
+
+
+
+{{#rows}}
+<p> <a href="{{url}}"  target="_blank">
+    {{first}} {{last}}
+</a>
+<a href="/signers/{{city}}" target="_blank"> {{city}} </a>
+
+</p>
+{{/rows}} 
