@@ -1,9 +1,12 @@
 <h1>This is the SIGNERS template</h1>
-<ul>
-
-
+{{!-- <ul>
 {{#arr}}
     <h2>{{.}}</h2>
 {{/arr}}
-</ul>
+</ul> --}}
+<ul>
+{{#arr}}
+    <p>{{first}} {{last}} {{age}}</p><a href="/signers/{{city}}">{{city}}</a><a href="{{url}}">Website</a>
 
+{{/arr}} 
+</ul>

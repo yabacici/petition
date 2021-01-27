@@ -1,5 +1,6 @@
 const express = require("express");
 const app = express();
+exports.app = app; // check server.test.js // linked to const app = express() line above
 const cookieSession = require("cookie-session");
 const secrets = require("./secrets");
 const hb = require("express-handlebars");
@@ -48,29 +49,14 @@ app.use(express.urlencoded({ extended: false }));
 // step 3: is in petition folder and all routes with POST
 app.use(csurf());
 
-// part 3 app use version
-// app.use((req, res, next) => {
-//     if (req.url == "/petition" || req.url == "/register") {
-//         next();
-//     } else {
-//         if (req.session.signatureId) {
-//             next();
-//         } else {
-//             res.redirect("/petition");
-//         }
-//     }
-// });
+app.use(function (req, res, next) {
+    if (!req.session.userId && req.url != "/register" && req.url != "/login") {
+        res.redirect("/register");
+    } else {
+        next();
+    }
+});
 
-// part4;
-// app.use((req, res, next) => {
-//     if (req.url == "/petition" && !req.session.userId) {
-//         return res.redirect("/register");
-//     } else if (req.url == "/petition" && !req.session.logIn) {
-//         return res.redirect("/login");
-//     } else if (req.url == "/register" && !req.session.userId) {
-//         next();
-//     }
-// });
 // step 4:put this middlw func after all the previous csurf stuff
 app.use(function (req, res, next) {
     // console.log("req.session in middleware:", req.session);
@@ -78,52 +64,32 @@ app.use(function (req, res, next) {
     next();
 });
 
-app.get("/profile", (req, res) => {
-    console.log("this is the profile page");
-    res.render("profile", {
-        layout: "main",
-        title: "Profile Page",
-    });
-});
+// const requireSignature = (req, res, next) => {
+//     if (!req.session.signatureId && req.url != '/petition') {
+//         res.redirect("/petition");
+//     } else {
+//         next();
+//     }
+// };
 
-// app.post("/profile", (req, res) => {
-//     db.insertUserProfile(
-//         req.body.age,
-//         req.body.city,
-//         req.body.url,
-//         req.session.userId
-//     )
-//         .then((results) => {
-//             req.session.userId = results.rows[0].id;
-//             res.redirect("/petition");
-//         })
-//         .catch((err) => {
-//             console.log("err in addProfile:", err);
-//         });
-// });
+// const requireNoSignature = (req, res, next) => {
+//     if (req.session.signatureId ) {
+//         res.redirect("/thanks");
+//     } else {
+//         next();
+//     }
+// };
 
-app.post("/profile", (req, res) => {
-    const age = req.body.age;
-    const city = req.body.city;
-    const url = req.body.url;
-    const userId = req.session.userId;
-    // const errAdd = true;
-
-    if (url.startsWith("http") || url == "") {
-        db.insertUserProfile(age, city, url, userId).then(() => {
-            res.redirect("/petition");
-        });
-    } else {
-        res.render("profile", {
-            title: "Profile",
-            layout: "main",
-            err: "Please provide all information",
-        });
-    }
-});
+// function requireLoggedOutUser(req, res, next) {
+//     if (req.session.userId) {
+//         res.redirect("/petition");
+//     } else {
+//         next();
+//     }
+// }
 
 app.get("/register", (req, res) => {
-    res.render("./register", {
+    res.render("register", {
         title: "Register",
         layout: "main",
     });
@@ -160,6 +126,45 @@ app.post("/register", (req, res) => {
             });
     });
 });
+
+app.get("/profile", (req, res) => {
+    console.log("this is the profile page");
+    res.render("profile", {
+        layout: "main",
+        title: "Profile Page",
+    });
+});
+
+app.post("/profile", (req, res) => {
+    const age = req.body.age;
+    const city = req.body.city;
+    const url = req.body.url;
+    const userId = req.session.userId;
+    // const errAdd = true;
+
+    if (url.startsWith("https") || url == "") {
+        db.insertUserProfile(age, city, url, userId).then(() => {
+            res.redirect("/petition");
+        });
+    } else {
+        res.render("profile", {
+            title: "Profile",
+            layout: "main",
+            err: "Please provide all information",
+        });
+    }
+});
+
+app.get("profile/edit", (req, res) => {
+    res.sendStatus(200);
+});
+app.post("profile/edit", (req, res) => {
+    res.sendStatus(200);
+});
+
+// app.get("logout", (req, res) => {
+//     res.sendStatus(200);
+// });
 
 app.get("/login", (req, res) => {
     res.render("login", {
@@ -225,7 +230,6 @@ app.post("/petition", (req, res) => {
         db.addSignatures(
             // alter your route so that you pass userId from the cookie to your query
             // instead of first and last name
-
             // req.body.firstname,
             // req.body.lastname,
             req.session.userId,
@@ -317,8 +321,20 @@ app.get("/signers", (req, res) => {
             console.log("error in getAllSignatures:", err);
         });
 });
+
+app.get("/signers/:city", (req, res) => {
+    res.sendStatus(200);
+});
+
+// app.post("signature/delete", (req, res) => {
+//     res.sendStatus(200);
+// });
+
+// if(require.main == module){} put server line in it to work with file
 // with Heroku
-app.listen(process.env.PORT || 8080, () =>
-    console.log("Petition Server running")
-);
+if (require.main == module) {
+    app.listen(process.env.PORT || 8080, () =>
+        console.log("Petition Server running")
+    );
+}
 // app.listen(8080, () => console.log("Petition Server running"));
