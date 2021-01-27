@@ -9,17 +9,28 @@ module.exports.getSignatures = () => {
     return db.query(q);
 };
 
-module.exports.addSignatures = (first, last, signatures) => {
-    const q = `INSERT INTO signatures (first, last, signature) VALUES ($1,$2,$3) RETURNING id`;
-    const params = [first, last, signatures];
+// module.exports.addSignatures = (first, last, signatures) => {
+//     const q = `INSERT INTO signatures (first, last, signature) VALUES ($1,$2,$3) RETURNING id`;
+//     const params = [first, last, signatures];
+//     return db.query(q, params);
+// };
+
+// Insert new signature
+module.exports.addSignature = (signature, user_id) => {
+    const q = `INSERT INTO signatures (signature, user_id)
+    VALUES ($1, $2) RETURNING id`;
+
+    const params = [signature, user_id];
     return db.query(q, params);
 };
 
 // INSERT INTO signatures ( first, last, signature) VALUES ($1, $2, $3);
-module.exports.getAllSignatures = () => {
-    const q = `SELECT first, last FROM signatures`;
-    return db.query(q);
-};
+// module.exports.getAllSignatures = (first, last, signature) => {
+//     // const q = `SELECT first, last FROM signatures`;
+//     const params = [first, last, signature];
+//     const q = `INSERT INTO signatures (first, last, signature) VALUES ($1,$2,$3) RETURNING id`;
+//     return db.query(q, params);
+// };
 
 module.exports.pullSignatures = (signature) => {
     const q = `SELECT signature FROM signatures WHERE id=$1`;
@@ -55,44 +66,34 @@ module.exports.userSigned = (userId) => {
     return db.query(q, params);
 };
 
+//INSERT more data
 module.exports.insertUserProfile = (age, city, url, userId) => {
-    const q = `INSERT INTO user_prof (age, city, url, user_id) VALUES ($1,$2,$3,$4) RETURNING id`;
+    const q = `INSERT INTO user_profiles (age, city, url, user_id) VALUES ($1,$2,$3,$4) RETURNING id`;
     const params = [age, city, url, userId];
     return db.query(q, params);
 };
 
-// module.exports.addPetition = (userId, signature) => {
-//     return db.query(
-//         `
-//         INSERT INTO signatures (user_id, signature)
-//         VALUES ($1, $2) RETURNING id
-
-//     `,
-//         [userId, signature]
-//     );
-// };
-
 // JOIN
+//SELECT name, age, city, url from the 3 tables
+module.exports.getAllData = () => {
+    const q = `SELECT users.first, users.last, user_profiles.age, user_profiles.city, user_profiles.url
+    FROM signatures
+    JOIN users
+    ON signatures.user_id = users.id
+    JOIN user_profiles
+    ON  users.id = user_profiles.user_id`;
+    return db.query(q);
+};
 
-// module.exports.getData = () => {
-//     const q = `SELECT users.first, users.last, user_profiles.age, user_profiles.city, user_profiles.url
-//     FROM signatures
-//     JOIN users
-//     ON signatures.user_id = users.id
-//     JOIN user_profiles
-//     ON  users.id = user_profiles.user_id`;
-//     return db.query(q);
-// };
+module.exports.getCity = (city) => {
+    const q = `SELECT users.first, users.last, user_profiles.age, user_profiles.city, user_profiles.url
+    FROM signatures
+    JOIN users
+    ON signatures.user_id = users.id
+    JOIN user_profiles
+    ON  users.id = user_profiles.user_id
+    WHERE LOWER(city) = LOWER($1)`;
 
-// module.exports.getCity = (city) => {
-//     const q = `SELECT users.first, users.last, user_profiles.age, user_profiles.city, user_profiles.url
-//     FROM signatures
-//     JOIN users
-//     ON signatures.user_id = users.id
-//     JOIN user_profiles
-//     ON  users.id = user_profiles.user_id
-//     WHERE LOWER(city) = LOWER($1)`;
-
-//     const params = [city];
-//     return db.query(q, params);
-// };
+    const params = [city];
+    return db.query(q, params);
+};

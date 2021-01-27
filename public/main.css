@@ -3,8 +3,6 @@ body {
     color: pink;
 }
 
-/* canvas {
-    border: 1px solid black;
-    width: 3px;
-    height: 360px;
-} */
+canvas {
+    border: 3px dashed #000000;
+}

@@ -8,25 +8,24 @@
         {{!-- <canvas id="canvas" width="200" height="200" style="border:3px dashed #000000;"></canvas> --}}
         {{!-- <p>Sign here</p> --}}
     <button> submit </button>
-
     </form> 
-
-
 <script src="/script.js"></script> --}}
 
 
 
 <h2>PLEASE SIGN OUR PETITION </h2>
-    <form id= "form" method="POST">   
-    <input id= "canvas" type="hidden" name="signature"><canvas id="signature" width="200" height="100"></canvas>
+    {{!-- <form id= "form" method="POST">    --}} 
+
+
+    <form method='POST' style="display: flex; flex-direction: column; justify-content: space-between; width: 30%; height: 30%;"></form> --}}
+    <input id= "sig-id" type="hidden" name="signature">
+    <p class="sign-here">Please sign here</p>
+    <canvas id="signature" width="200" height="200" ></canvas>
     <input type="hidden" name="_csrf" value="{{csrfToken}}">
     <button>SUBMIT</button>
     </form>
-
-
-
 {{!-- {{#if errAdd}} <p>Please fill everything correctly</p>{{/if}} --}}
 
-<script src="canvas.js"></script>
+          
 
-{{!-- <script src="/script.js"></script> --}}
+<script src="/script.js"></script>

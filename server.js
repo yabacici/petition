@@ -200,15 +200,28 @@ app.post("/login", (req, res) => {
         }
     });
 });
-app.get("/petition", (req, res) => {
-    // IF the user has already signed the petition, it redirects to /thanks (→ check your cookie for this)
-    // IF user has not yet signed, it renders petition.handlebars template
-    // (req.session.name = "adobo"), res.render("petition", { layout: "main" });
+// app.get("/petition", (req, res) => {
+//     // IF the user has already signed the petition, it redirects to /thanks (→ check your cookie for this)
+//     // IF user has not yet signed, it renders petition.handlebars template
+//     // (req.session.name = "adobo"), res.render("petition", { layout: "main" });
 
-    res.render("petition", {
-        layout: "main",
-        title: "Petition",
-    });
+//     res.render("petition", {
+//         layout: "main",
+//         title: "Petition",
+//     });
+// });
+
+app.get("/petition", (req, res) => {
+    //if(!req.cookies.signed)
+    if (!req.session.signatureId) {
+        //add title layout etc
+        res.render("petition", {
+            title: "Petition",
+            layout: "main",
+        });
+    } else {
+        res.redirect("/thanks");
+    }
 });
 
 app.post("/petition", (req, res) => {
@@ -227,7 +240,7 @@ app.post("/petition", (req, res) => {
     // we use "firstname" and "lastname" bcuz this is what the terminal is using
     // if (first && last && signature) {
     if (req.body) {
-        db.addSignatures(
+        db.addSignature(
             // alter your route so that you pass userId from the cookie to your query
             // instead of first and last name
             // req.body.firstname,
@@ -240,12 +253,12 @@ app.post("/petition", (req, res) => {
                 // res.redirect("/thanks");
                 req.session.signatureId = results.rows[0].id;
                 // console.log(req.session);
-                res.cookie("submitted", true);
-                res.cookie("submissionError", false);
+                // res.cookie("submitted", true);
+                // res.cookie("submissionError", false);
                 res.redirect("/thanks");
             })
             .catch((err) => {
-                console.log("error in addSignatures: ", err);
+                console.log("error in addSignature: ", err);
                 res.cookie("submissionError", true);
                 res.render("petition", {
                     title: "Petition",
@@ -256,38 +269,44 @@ app.post("/petition", (req, res) => {
     }
 });
 
-app.get("/thanks", (req, res, { rows }) => {
+app.get("/thanks", (req, res) => {
     // renders the thanks.handlebars template
     // However this should only be visible to those that have signed, so:
     // IF there is a cookie that the user has signed, render the template
     // redirect users to /petition if there is no cookie (this means they haven't signed yet & should not see this page!)
-    if (req.session.signatureId) {
+    if (!req.session.signatureId) {
+        res.redirect("/petition");
+    } else {
+        // if (req.session.signatureId) {
         const promiseArray = [
             db.pullSignatures(req.session.signatureId),
-            db.numOfSig({ rows }),
-            db.getAllSignatures(),
+            db.numOfSig(),
+            // db.getAllSignatures(),
         ];
         Promise.all(promiseArray)
             .then((results) => {
-                const signature = results[0].rows[0].signature;
+                let signature = results[0].rows[0].signature;
                 const count = results[1].rows[0].count;
-                const arr = results[2].rows[0];
-
-                return res.render("thanks", {
-                    title: "Thank You",
-                    layout: "main",
-                    rows,
-                    signature,
-                    count,
-                    arr,
+                // const arr = results[2].rows[0];
+                db.pullSignatures(req.session.signatureId).then(({ rows }) => {
+                    db.numOfSig({ rows });
+                    return res.render("thanks", {
+                        title: "Thank You",
+                        layout: "main",
+                        // rows,
+                        signature,
+                        count,
+                        // arr,
+                    });
                 });
             })
             .catch((err) => {
                 console.log(err);
             });
-    } else {
-        res.redirect("/petition");
     }
+    // } else {
+    // res.redirect("/petition");
+    // }
 });
 
 app.get("/signers", (req, res) => {
@@ -298,7 +317,7 @@ app.get("/signers", (req, res) => {
 
     let arr = [];
 
-    db.getAllSignatures()
+    db.getAllData()
         .then((results) => {
             let fullName = results.rows.forEach((x) => {
                 let xName = x.first + " " + x.last;
@@ -318,12 +337,28 @@ app.get("/signers", (req, res) => {
             console.log("arr:", arr);
         })
         .catch((err) => {
-            console.log("error in getAllSignatures:", err);
+            console.log(err);
         });
 });
 
 app.get("/signers/:city", (req, res) => {
-    res.sendStatus(200);
+    let city = req.params.city;
+
+    if (!req.session.signatureId) {
+        res.redirect("/petition");
+    } else {
+        db.getByCity(city)
+            .then(({ rows }) => {
+                res.render("cities", {
+                    title: city,
+                    layout: "main",
+                    rows,
+                });
+            })
+            .catch((err) => {
+                console.log("this err in getByCity: ", err);
+            });
+    }
 });
 
 // app.post("signature/delete", (req, res) => {

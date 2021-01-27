@@ -1,6 +1,7 @@
-const canvas = document.getElementById("canvas");
+const canvas = document.getElementById("signature");
 console.log(canvas);
 const context = canvas.getContext("2d");
+
 // When true, moving the mouse draws on the canvas
 let isDrawing = false;
 let x = 0;
