@@ -4,10 +4,8 @@ if (process.env.DATABASE_URL) {
     // means we are in production on heroku
     db = spicedPg(process.env.DATABASE_URL);
 } else {
-    const { dbUsername, dbPassword } = require("./secrets");
-    db = spicedPg(
-        `postgres:${dbUsername}:${dbPassword}@localhost:5432/petition`
-    );
+    // const { dbUsername, dbPassword } = require("./secrets");
+    db = spicedPg(`postgres:postgres:postgres@localhost:5432/petition`);
 }
 // const db = spicedPg(
 //     process.env.DATABASE_URL ||
@@ -67,7 +65,11 @@ module.exports.addRegister = (first, last, email, hashedPw) => {
 
 // SELECT to get user info by email address (in post /login)
 module.exports.getInfoByEmail = (email) => {
-    const q = `SELECT password FROM users WHERE email=$1`;
+    // const q = `SELECT password FROM users WHERE email=$1`;
+    const q = `SELECT users.password, users.id, signatures.id AS signatureid FROM users
+    LEFT JOIN signatures 
+    ON users.id = signatures.user_id
+    WHERE email = $1`;
     const params = [email];
     return db.query(q, params);
 };
@@ -92,9 +94,9 @@ module.exports.insertUserProfile = (age, city, url, userId) => {
 //SELECT name, age, city, url from the 3 tables
 module.exports.getSignersData = () => {
     const q = `SELECT users.first, users.last, user_profiles.age, user_profiles.city, user_profiles.url, signatures.signature FROM users
-    LEFT JOIN user_profiles
+    JOIN user_profiles
     ON users.id = user_profiles.user_id
-    LEFT JOIN signatures
+    JOIN signatures
     ON users.id = signatures.user_id`;
 
     return db.query(q);

@@ -60,38 +60,47 @@ app.use(function (req, res, next) {
     next();
 });
 
+const requireSignature = (req, res, next) => {
+    if (!req.session.signatureId) {
+        res.redirect("/petition");
+    } else {
+        next();
+    }
+};
+
 // const requireSignature = (req, res, next) => {
-//     if (!req.session.signatureId && req.url != '/petition') {
+//     if (!req.session.signatureId && req.url != "/petition") {
 //         res.redirect("/petition");
 //     } else {
 //         next();
 //     }
 // };
+const requireNoSignature = (req, res, next) => {
+    if (req.session.signatureId) {
+        res.redirect("/thanks");
+    } else {
+        next();
+    }
+};
+const requireLoggedOutUser = (req, res, next) => {
+    if (req.session.userId) {
+        res.redirect("/petition");
+    } else {
+        next();
+    }
+};
 
-// const requireNoSignature = (req, res, next) => {
-//     if (req.session.signatureId ) {
-//         res.redirect("/thanks");
-//     } else {
-//         next();
-//     }
-// };
-
-// function requireLoggedOutUser(req, res, next) {
-//     if (req.session.userId) {
-//         res.redirect("/petition");
-//     } else {
-//         next();
-//     }
-// }
-
-app.get("/register", (req, res) => {
+app.get("/", (req, res) => {
+    res.redirect("/register");
+});
+app.get("/register", requireLoggedOutUser, (req, res) => {
     res.render("register", {
         title: "Register",
         layout: "main",
     });
 });
 
-app.post("/register", (req, res) => {
+app.post("/register", requireLoggedOutUser, (req, res) => {
     // grab the user input and read it on the server
     // hash the password that the user typed and THEN
     // insert a row in the USERS table (new table) -> see 3. for table structure
@@ -102,7 +111,7 @@ app.post("/register", (req, res) => {
 
     const { firstname, lastname, email, password } = req.body;
 
-    hash(req.body.password).then((hashedPw) => {
+    hash(password).then((hashedPw) => {
         console.log("hashedPw in /register:", hashedPw);
         // we'll be wanting to add all user information plus the hashed PW into our db
         // if this worked successfully we want to redirect the user
@@ -114,11 +123,13 @@ app.post("/register", (req, res) => {
                 return res.redirect("/profile");
             })
             .catch((err) => {
-                console.log("err in registration:", err);
-                // res.render("register", {
-                //     title: "Register",
-                //     layout: "main",
-                // });
+                console.log("err in register:", err);
+                res.render("register", {
+                    title: "Register",
+                    layout: "main",
+                    errorMessage:
+                        "something wrong in DB :, Oops, something went wrong!!!",
+                });
             });
     });
 });
@@ -219,39 +230,78 @@ app.post("/edit", (req, res) => {
     }
 });
 
-app.get("/login", (req, res) => {
+app.get("/login", requireLoggedOutUser, (req, res) => {
     res.render("login", {
         layout: "main",
         title: "Log in",
     });
 });
 
-app.post("/login", (req, res) => {
-    req.on("error", (err) => {
-        console.log("error on req object: ", err);
-    });
-    res.on("error", (err) => {
-        console.log("error on res object: ", err);
-    });
-    // now we want to compare values
-    // go to you db, check if the email the user provided exists,
-    // and if yes retrieve the stored hash and pass that to compare are the second argument
+// app.post("/login", requireLoggedOutUser, (req, res) => {
+//     // now we want to compare values
+//     // go to you db, check if the email the user provided exists,
+//     // and if yes retrieve the stored hash and pass that to compare are the second argument
 
-    db.getInfoByEmail(req.body.email).then((results) => {
-        if (compare(req.body.password, results.rows[0].id)) {
-            // if (compare(hashedPw, results.rows[0].id)) {
-            //use compare method or &&
-            req.session.userId = results.rows[0].id;
-            res.redirect("/register");
-        } else {
-            console.log("err");
+//     db.getInfoByEmail(req.body.email)
+//         .then((results) => {
+//             if (compare(req.body.password, results.rows[0].id)) {
+//                 // if (compare(hashedPw, results.rows[0].id)) {
+//                 //use compare method or &&
+//                 req.session.userId = results.rows[0].id;
+//                 res.redirect("/register");
+//             } else {
+//                 console.log("err");
+//                 res.render("login", {
+//                     layout: "main",
+//                     title: "Log in",
+//                     error: "Something went wrong, please enter your password",
+//                 });
+//             }
+//         })
+//         .catch((err) => {
+//             console.log("Error in getInfoByEmail", err);
+//         });
+// });
+
+app.post("/login", requireLoggedOutUser, (req, res) => {
+    const { email, password } = req.body;
+    console.log("email pass: ", email, password);
+    // if (email) {
+    db.getInfoByEmail(email)
+        .then(({ rows }) => {
+            console.log("rows: ", rows);
+            const hashedPw = rows[0].password;
+            compare(password, hashedPw)
+                .then((match) => {
+                    if (match) {
+                        req.session.signatureId = rows[0].signatureid;
+                        req.session.userId = rows[0].id;
+                        req.session.loggedIn = rows[0].id;
+                        if (!req.session.signatureId) {
+                            res.redirect("/petition");
+                        } else {
+                            res.redirect("/thanks");
+                        }
+                    } else {
+                        res.render("login", {
+                            title: "Please log in",
+                            errorMessage:
+                                "Oops, there was an error, incorrect password",
+                        });
+                    }
+                })
+                .catch((err) => {
+                    console.log("err in compare:", err);
+                });
+        })
+        .catch((err) => {
+            console.log("err in getlogin data: ", err);
             res.render("login", {
-                layout: "main",
-                title: "Log in",
-                error: "Something went wrong, please enter your password",
+                title: "Please log in",
+                errorMessage: "Oops, something went wrong, incorrect email!",
             });
-        }
-    });
+        });
+    // }
 });
 
 app.get("/logout", (req, res) => {
@@ -269,19 +319,18 @@ app.get("/logout", (req, res) => {
 //     });
 // });
 
-app.get("/petition", (req, res) => {
-    //if(!req.cookies.signed)
-    if (!req.session.signatureId) {
-        //add title layout etc
-        res.render("petition", {
-            title: "Petition",
-            layout: "main",
-        });
-    } else {
-        res.redirect("/thanks");
-    }
+app.get("/petition", requireNoSignature, (req, res) => {
+    // if (!req.session.signatureId) {
+    //add title layout etc
+    res.render("petition", {
+        title: "Petition",
+        layout: "main",
+    });
+    // } else {
+    // res.redirect("/thanks");
+    // }
 });
-app.post("/petition", (req, res) => {
+app.post("/petition", requireNoSignature, (req, res) => {
     // runs when the user submits their signature, i.e. clicks submit
     // attempt to INSERT all data to submit into a designated table into your database, you will get this data from req.body
     // IF the db insert fails (i.e. your promise from the db query gets rejected), rerender petition.handlebars and pass an indication that there should be an error message shown to the template
@@ -321,40 +370,36 @@ app.post("/petition", (req, res) => {
         });
 });
 
-app.get("/thanks", (req, res) => {
+app.get("/thanks", requireSignature, (req, res) => {
     // renders the thanks.handlebars template
     // However this should only be visible to those that have signed, so:
     // IF there is a cookie that the user has signed, render the template
     // redirect users to /petition if there is no cookie (this means they haven't signed yet & should not see this page!)
-    if (!req.session.signatureId) {
-        res.redirect("/petition");
-    } else {
-        // if (req.session.signatureId) {
-        const promiseArray = [
-            db.pullSignatures(req.session.signatureId),
-            db.numOfSig(),
-            db.getUserFirstname(req.session.userId),
-        ];
-        Promise.all(promiseArray)
-            .then((results) => {
-                let signature = results[0].rows[0].signature;
-                const count = results[1].rows[0].count;
-                let first = results[2].rows[0].first;
-                db.pullSignatures(req.session.signatureId).then(({ rows }) => {
-                    db.numOfSig({ rows });
-                    return res.render("thanks", {
-                        title: "Thank You",
-                        layout: "main",
-                        signature,
-                        count,
-                        first,
-                    });
+    // if (req.session.signatureId) {
+    const promiseArray = [
+        db.pullSignatures(req.session.signatureId),
+        db.numOfSig(),
+        db.getUserFirstname(req.session.userId),
+    ];
+    Promise.all(promiseArray)
+        .then((results) => {
+            let signature = results[0].rows[0].signature;
+            const count = results[1].rows[0].count;
+            let first = results[2].rows[0].first;
+            db.pullSignatures(req.session.signatureId).then(({ rows }) => {
+                db.numOfSig({ rows });
+                return res.render("thanks", {
+                    title: "Thank You",
+                    layout: "main",
+                    signature,
+                    count,
+                    first,
                 });
-            })
-            .catch((err) => {
-                console.log(err);
             });
-    }
+        })
+        .catch((err) => {
+            console.log(err);
+        });
 });
 
 // app.post("/thanks", (req, res) => {
@@ -372,7 +417,7 @@ app.get("/thanks", (req, res) => {
 //         });
 // });
 
-app.get("/signers", (req, res) => {
+app.get("/signers", requireSignature, (req, res) => {
     // redirect users to /petition if there is no cookie (this means they haven't signed yet & should not see this page!)
     // SELECT first and last values of every person that has signed from the database and pass them to signers.handlebars
     // SELECT the number of people that have signed the petition from the db → I recommend looking into what COUNT can do for you here ;)
@@ -392,24 +437,20 @@ app.get("/signers", (req, res) => {
         });
 });
 
-app.get("/signers/:city", (req, res) => {
+app.get("/signers/:city", requireSignature, (req, res) => {
     let city = req.params.city;
 
-    if (!req.session.signatureId) {
-        res.redirect("/petition");
-    } else {
-        db.signersByCity(city)
-            .then(({ rows }) => {
-                res.render("city", {
-                    title: city,
-                    layout: "main",
-                    rows,
-                });
-            })
-            .catch((err) => {
-                console.log("this err in getByCity: ", err);
+    db.signersByCity(city)
+        .then(({ rows }) => {
+            res.render("city", {
+                title: city,
+                layout: "main",
+                rows,
             });
-    }
+        })
+        .catch((err) => {
+            console.log("this err in getByCity: ", err);
+        });
 });
 
 // app.post("signature/delete", (req, res) => {
