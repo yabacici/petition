@@ -1,8 +1,18 @@
 const spicedPg = require("spiced-pg");
-const db = spicedPg(
-    process.env.DATABASE_URL ||
-        `postgres:postgres:postgres@localhost:5432/petition`
-);
+let db;
+if (process.env.DATABASE_URL) {
+    // means we are in production on heroku
+    db = spicedPg(process.env.DATABASE_URL);
+} else {
+    const { dbUsername, dbPassword } = require("./secrets");
+    db = spicedPg(
+        `postgres:${dbUsername}:${dbPassword}@localhost:5432/petition`
+    );
+// const db = spicedPg(
+//     process.env.DATABASE_URL ||
+//         `postgres:postgres:postgres@localhost:5432/petition`
+// );
+
 
 module.exports.getSignatures = () => {
     const q = `SELECT * FROM signatures`;

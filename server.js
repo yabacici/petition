@@ -2,7 +2,7 @@ const express = require("express");
 const app = express();
 exports.app = app; // check server.test.js // linked to const app = express() line above
 const cookieSession = require("cookie-session");
-const secrets = require("./secrets");
+// const secrets = require("./secrets");
 const hb = require("express-handlebars");
 // step 1: require CRSURF for protecttion
 const csurf = require("csurf");
