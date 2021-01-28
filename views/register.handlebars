@@ -1,13 +1,28 @@
-    <h2>Please register</h2>
-<form method='POST' style="display: flex; flex-direction: column; justify-content: space-between; width: 30%; height: 30%;">
-        <input type='text' name='firstname' placeholder='First Name'>
-        <input type='text' name='lastname' placeholder='Last Name'>
-        <input type='email' name='email' placeholder='email'>
-        <input type='password' name='password' placeholder='password'>
-         <input type="hidden" name="_csrf" value="{{csrfToken}}">
+{{!-- {{>header}} --}}
+<h2>We know YOU ALL miss her</h2> 
+<h2>let's save Britney from darkness and bring her back so Taylor Swift can vanish</h2>
+<div align="center">
+<audio controls>
+{{!-- <source src="babyone.mp3"> --}}
+<source src="toxic.mp3">
+</audio>
+</div>
+
+<div class="box">
+    <div class="container"></div>
+        <form method = 'POST'>
+            <label for="male">ENTER YOUR FIRST NAME</label>
+            <input type='text' name='firstname'>
+            <label for="male">ENTER YOUR LAST NAME</label>
+            <input type='text' name='lastname'>
+            <label for="male">ENTER YOUR EMAIL</label>
+            <input type='email' name='email'>
+            <label for="male">ENTER YOUR PASSWORD</label>
+            <input type='password' name='password'>
+            <input type="hidden" name="_csrf" value="{{csrfToken}}">
         <button>SIGN UP</button>
-</form> 
+    </form>
+    <p>{{errorMessage}}</p>
+    </div>
+</div>
 
-<a href="/register">LOGIN</a>
-
-<p>{{errorMessage}}</p>

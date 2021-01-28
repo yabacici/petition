@@ -75,6 +75,13 @@ const requireSignature = (req, res, next) => {
 //         next();
 //     }
 // };
+const requireLoggedInUser = (req, res, next) => {
+    if (!req.session.userId && req.url != "/register" && req.url != "/login") {
+        res.redirect("/register");
+    } else {
+        next();
+    }
+};
 const requireNoSignature = (req, res, next) => {
     if (req.session.signatureId) {
         res.redirect("/thanks");
@@ -127,8 +134,7 @@ app.post("/register", requireLoggedOutUser, (req, res) => {
                 res.render("register", {
                     title: "Register",
                     layout: "main",
-                    errorMessage:
-                        "something wrong in DB :, Oops, something went wrong!!!",
+                    errorMessage: "Oops, something went wrong!!!",
                 });
             });
     });
@@ -157,12 +163,12 @@ app.post("/profile", (req, res) => {
         res.render("profile", {
             title: "Profile",
             layout: "main",
-            err: "Please provide all information",
+            errorMessage: "Please provide all information",
         });
     }
 });
 
-app.get("/edit", (req, res) => {
+app.get("/edit", requireLoggedInUser, (req, res) => {
     db.editProfile(req.session.userId)
         .then(({ rows }) => {
             res.render("edit", {
@@ -176,7 +182,7 @@ app.get("/edit", (req, res) => {
         });
 });
 
-app.post("/edit", (req, res) => {
+app.post("/edit", requireLoggedInUser, (req, res) => {
     const { first, last, email, password, age, city, url } = req.body;
 
     if (password) {
@@ -402,20 +408,20 @@ app.get("/thanks", requireSignature, (req, res) => {
         });
 });
 
-// app.post("/thanks", (req, res) => {
-//     // console.log("post req made");
-//     console.log(req.session);
+app.post("/thanks", (req, res) => {
+    // console.log("post req made");
+    console.log(req.session);
 
-//     db.deleteSignature(req.session.userId)
-//         .then(() => {
-//             console.log("signature deleted");
-//             req.session.signatureId = null;
-//             res.redirect("/petition");
-//         })
-//         .catch((err) => {
-//             console.log("err deleting signatures: ", err);
-//         });
-// });
+    db.deleteSignature(req.session.userId)
+        .then(() => {
+            console.log("signature deleted");
+            req.session.signatureId = null;
+            res.redirect("/petition");
+        })
+        .catch((err) => {
+            console.log("err deleting signatures: ", err);
+        });
+});
 
 app.get("/signers", requireSignature, (req, res) => {
     // redirect users to /petition if there is no cookie (this means they haven't signed yet & should not see this page!)
@@ -433,7 +439,7 @@ app.get("/signers", requireSignature, (req, res) => {
             });
         })
         .catch((err) => {
-            console.log(err);
+            console.log("this err in SignersData: ", err);
         });
 });
 

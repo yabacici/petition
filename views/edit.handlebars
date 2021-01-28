@@ -1,5 +1,24 @@
-<h2>Edit Profile</h2>
+<h2>Edit your Profile</h2>
 
-
-
+<div class="box">
+<form method = 'POST'>
+    <label for="male">ENTER YOUR FIRST NAME</label>
+            <input type='text' name='firstname'>
+              <label for="male">ENTER YOUR LAST NAME</label>
+            <input type='text' name='lastname'>
+           <label for="male">ENTER YOUR EMAIL</label>
+            <input type='email' name='email'>
+           <label for="male">ENTER YOUR PASSWORD</label>
+            <input type='password' name='password'>
+             <label for="age">HOW OLD ARE YOU?</label>
+            <input type="text" name="age"> 
+           <label for="city">WHERE DO YOU LIVE?</label>
+            <input type="text" name="city">
+              <label for="url">URL</label>
+            <input type="text" name="url">
+          
+            <input type="hidden" name="_csrf" value="{{csrfToken}}">
+        <button>EDIT</button>
+    </form>
+</div>
  

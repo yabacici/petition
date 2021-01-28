@@ -1,10 +1,18 @@
-<h2>LogIn Page</h2>
+<h2>Enter your information</h2>
+<div class="box">
 <form method="POST">
-    <input type="text" name="email"> <label for="email">Email address</label>
-    <input type="text" name="password"><label for="password">Password</label>
+    <label for="email">WRITE YOUR EMAIL</label>
+    <input type="text" name="email"> 
+    <label for="password">ENTER A PASSWORD</label>
+    <input type="password" name="password">
     <input type="hidden" name="_csrf" value="{{csrfToken}}">
     <button type="submit">LOG IN</button>   
 </form>
-{{!-- {{#if errAdd}} <p>Error, please try again.</p>{{/if}} --}}
-
+<div style="text-align: center;">
+<h3>You are not registered yet? click here</h3>
 <a href="/register">REGISTER</a>
+</div>
+</div>
+
+
+<p>{{errorMessage}}</p>

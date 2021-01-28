@@ -1,8 +1,149 @@
-body {
-    background-color: dimgrey;
-    color: pink;
-}
-
 /* canvas {
     border: 3px dashed #000000;
 } */
+
+body {
+    background-image: url("mosaic.png");
+    background-color: rgb(114, 45, 57);
+    color: black;
+    font-family: "Potta One", cursive;
+}
+form {
+    display: inline-block;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: left;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 30%;
+    height: 30%;
+}
+
+.box {
+    background-image: url("white-waves.png");
+    background-size: cover;
+    border-radius: 30%;
+    padding: 100px 100px;
+    margin: 100px;
+    /* width: 100px;
+    height: 100px; */
+    border: 5px solid black;
+    margin-top: 3rem;
+}
+
+label {
+    display: block;
+    padding: 1rem 0 0.5rem;
+}
+
+input,
+textarea {
+    display: block;
+    width: 100%;
+    border: 2px solid blue;
+    padding: 0.5rem;
+}
+
+/* Add a black background color to the top navigation */
+.topnav {
+    background-color: #333;
+    overflow: hidden;
+}
+
+/* Style the links inside the navigation bar */
+.topnav a {
+    float: right;
+    display: block;
+    color: #f2f2f2;
+    text-align: center;
+    padding: 10px 16px;
+    text-decoration: none;
+    font-size: 17px;
+}
+
+/* Change the color of links on hover */
+.topnav a:hover {
+    background-color: #ddd;
+    color: green;
+}
+
+/* Add an active class to highlight the current page */
+.topnav a.active {
+    background-color: #f10cb8;
+    color: white;
+}
+
+/* Hide the link that should open and close the topnav on small screens */
+.topnav .icon {
+    display: none;
+}
+
+button {
+    /* background-color: white; */
+    color: black;
+    border: 2px solid #4caf50;
+    /* border: 0; */
+    background-color: purple;
+    padding: 1rem;
+    /* color: white; */
+    /* margin: 1rem 0; */
+    cursor: pointer;
+    /* width: 108%; */
+    margin-top: 1rem;
+    align-items: center;
+}
+
+/* button :hover {
+    background-color: aquamarine;
+} */
+
+.banner {
+    background-image: url("bs.jpg");
+    background-size: cover;
+    background-position: center;
+    padding: 200px;
+    width: 860px;
+    opacity: 0.8;
+    margin-top: 1rem;
+    height: 100%;
+}
+
+p {
+    color: red;
+    font-weight: bold;
+    text-align: center;
+}
+
+h2 {
+    text-align: center;
+    color: purple;
+    font-weight: bold;
+}
+
+h3 {
+    text-align: center;
+    color: purple;
+}
+
+a {
+    text-align: center;
+}
+
+/* card */
+
+/* .container { */
+/* Add shadows to create the "card" effect */
+/* box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+    transition: 0.3s;
+    border: 3 px solid black; */
+/* } */
+
+/* .container:hover {
+    box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2);
+} */
+
+audio {
+    margin-top: 1rem;
+}

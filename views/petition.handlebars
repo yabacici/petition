@@ -1,4 +1,6 @@
    <h2>Please sign our petition, and be a part of something meaningful!</h2>
+    
+    <div class="box">
     <form method='POST' style="display: flex; flex-direction: column; justify-content: space-between; width: 30%; height: 30%;">
         <input  id="sig-id" type='hidden' name='signature'>
          {{!-- step 3 put this hidden infup fiel in every single form --}}
@@ -8,18 +10,4 @@
     </form>
     <script src="/script.js"></script>
 
-{{!-- 
-
-<h2>PLEASE SIGN OUR PETITION </h2>
-    {{!-- <form id= "form" method="POST">    --}} 
-
-
-    <form method='POST' style="display: flex; flex-direction: column; justify-content: space-between; width: 30%; height: 30%;"></form> --}}
-    {{!-- <input id= "sig-id" type="hidden" name="signature">
-    <p class="sign-here">Please sign here</p>
-    <canvas id="canvas" width="200" height="200" ></canvas>
-    <input type="hidden" name="_csrf" value="{{csrfToken}}">
-    <button  type="submit" >SUBMIT</button>
-    </form>  --}}
-{{!-- {{#if errAdd}} <p>Please fill everything correctly</p>{{/if}} --}}
-
+    </div>  
