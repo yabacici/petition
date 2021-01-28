@@ -8,11 +8,11 @@ if (process.env.DATABASE_URL) {
     db = spicedPg(
         `postgres:${dbUsername}:${dbPassword}@localhost:5432/petition`
     );
+}
 // const db = spicedPg(
 //     process.env.DATABASE_URL ||
 //         `postgres:postgres:postgres@localhost:5432/petition`
 // );
-
 
 module.exports.getSignatures = () => {
     const q = `SELECT * FROM signatures`;
