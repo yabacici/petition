@@ -10,18 +10,16 @@ const db = require("./db");
 // const bc = require("./bc");
 let { hash, compare } = require("./bc");
 console.log(hash);
-
-//heroku
-// let cookie_sec;
-// let cookie_sec;
-// if (process.env.cookie_secret) {
-//     // we are in production
-//     cookie_sec = process.env.cookie_secret;
-// } else {
-//     // we are local and will get our secrets out of the secret file :)
-//     // careful your secrets require statement might look different
-//     cookie_sec = require("./secrets.json").cookie_secret;
-// }
+// heroku
+let cookie_sec;
+if (process.env.sessionSecret) {
+    //we are in production
+    cookie_sec = process.env.sessionSecret;
+} else {
+    // we are local and will get our secrets out of the secret file :)
+    // careful your secrets require statement might look different
+    cookie_sec = require("./secrets").sessionSecret;
+}
 
 app.engine("handlebars", hb({ defaultLayout: "main" }));
 app.set("view engine", "handlebars");
@@ -36,8 +34,6 @@ app.use(express.static("./public"));
 
 app.use(
     cookieSession({
-        name: "session",
-        keys: ["key1", "key2"],
         maxAge: 1000 * 6 * 50 * 14,
         secret: secrets.sessionSecret,
         // 2 weeks
@@ -155,16 +151,73 @@ app.post("/profile", (req, res) => {
     }
 });
 
-app.get("profile/edit", (req, res) => {
-    res.sendStatus(200);
-});
-app.post("profile/edit", (req, res) => {
-    res.sendStatus(200);
+app.get("/edit", (req, res) => {
+    db.editProfile(req.session.userId)
+        .then(({ rows }) => {
+            res.render("edit", {
+                title: "Profile update",
+                layout: "main",
+                rows,
+            });
+        })
+        .catch((err) => {
+            console.log(" error in retrieving data : ", err);
+        });
 });
 
-// app.get("logout", (req, res) => {
-//     res.sendStatus(200);
-// });
+app.post("/edit", (req, res) => {
+    const { first, last, email, password, age, city, url } = req.body;
+
+    if (password) {
+        hash(password)
+            .then((hashedPw) => {
+                db.updateProfilePassword(
+                    req.session.userId,
+                    first,
+                    last,
+                    email,
+                    hashedPw
+                )
+                    .then(() => {
+                        db.upsertProfile(age, city, url, req.session.userId)
+                            .then(() => {
+                                if (req.session.signatureId) {
+                                    res.redirect("/thanks");
+                                } else {
+                                    res.redirect("/petition");
+                                }
+                            })
+                            .catch((err) => {
+                                console.log("err in upsert profile: ", err);
+                            });
+                    })
+                    .catch((err) => {
+                        console.log("err updating profile : ", err);
+                    });
+            })
+            .catch((err) => {
+                console.log("err hashing pass: ", err);
+            });
+    } else {
+        db.updateProfNoPassword(req.session.userId, first, last, email)
+            .then(() => {
+                db.upsertProfile(age, city, url, req.session.userId)
+                    .then(() => {
+                        if (req.session.signatureId) {
+                            res.redirect("/thanks");
+                        } else {
+                            res.redirect("/petition");
+                        }
+                    })
+                    .catch((err) => {
+                        console.log("err upsert profile: ", err);
+                    });
+            })
+            .catch((err) => {
+                console.log("err updating 3 datas: ", err);
+            });
+    }
+});
 
 app.get("/login", (req, res) => {
     res.render("login", {
@@ -199,6 +252,11 @@ app.post("/login", (req, res) => {
             });
         }
     });
+});
+
+app.get("/logout", (req, res) => {
+    req.session = null;
+    res.redirect("/register");
 });
 // app.get("/petition", (req, res) => {
 //     // IF the user has already signed the petition, it redirects to /thanks (→ check your cookie for this)
@@ -242,8 +300,8 @@ app.post("/petition", (req, res) => {
         // instead of first and last name
         // req.body.firstname,
         // req.body.lastname,
-        req.session.userId,
-        req.body.signature
+        req.body.signature,
+        req.session.userId
     )
         .then((results) => {
             // console.log(results);
@@ -275,22 +333,21 @@ app.get("/thanks", (req, res) => {
         const promiseArray = [
             db.pullSignatures(req.session.signatureId),
             db.numOfSig(),
-            // db.getAllSignatures(),
+            db.getUserFirstname(req.session.userId),
         ];
         Promise.all(promiseArray)
             .then((results) => {
                 let signature = results[0].rows[0].signature;
                 const count = results[1].rows[0].count;
-                // const arr = results[2].rows[0];
+                let first = results[2].rows[0].first;
                 db.pullSignatures(req.session.signatureId).then(({ rows }) => {
                     db.numOfSig({ rows });
                     return res.render("thanks", {
                         title: "Thank You",
                         layout: "main",
-                        // rows,
                         signature,
                         count,
-                        // arr,
+                        first,
                     });
                 });
             })
@@ -298,37 +355,37 @@ app.get("/thanks", (req, res) => {
                 console.log(err);
             });
     }
-    // } else {
-    // res.redirect("/petition");
-    // }
 });
+
+// app.post("/thanks", (req, res) => {
+//     // console.log("post req made");
+//     console.log(req.session);
+
+//     db.deleteSignature(req.session.userId)
+//         .then(() => {
+//             console.log("signature deleted");
+//             req.session.signatureId = null;
+//             res.redirect("/petition");
+//         })
+//         .catch((err) => {
+//             console.log("err deleting signatures: ", err);
+//         });
+// });
 
 app.get("/signers", (req, res) => {
     // redirect users to /petition if there is no cookie (this means they haven't signed yet & should not see this page!)
     // SELECT first and last values of every person that has signed from the database and pass them to signers.handlebars
     // SELECT the number of people that have signed the petition from the db → I recommend looking into what COUNT can do for you here ;)
     // const { firstname, lastname, signature } = req.body;
-
-    let arr = [];
-
-    db.getAllData()
-        .then((results) => {
-            let fullName = results.rows.forEach((x) => {
-                let xName = x.first + " " + x.last;
-                arr.push(xName);
-                return arr;
-            });
-            console.log("results1: ", arr);
-            // console.log("results2: ", arr[1]);
-            return arr;
-        })
-        .then((arr) => {
+    console.log("cookie:", req.session.signatureId);
+    db.getSignersData()
+        .then(({ rows }) => {
+            console.log("rows", rows);
             res.render("signers", {
                 layout: "main",
                 title: "signers",
-                arr,
+                rows,
             });
-            console.log("arr:", arr);
         })
         .catch((err) => {
             console.log(err);
@@ -341,9 +398,9 @@ app.get("/signers/:city", (req, res) => {
     if (!req.session.signatureId) {
         res.redirect("/petition");
     } else {
-        db.getByCity(city)
+        db.signersByCity(city)
             .then(({ rows }) => {
-                res.render("cities", {
+                res.render("city", {
                     title: city,
                     layout: "main",
                     rows,
@@ -366,4 +423,3 @@ if (require.main == module) {
         console.log("Petition Server running")
     );
 }
-// app.listen(8080, () => console.log("Petition Server running"));

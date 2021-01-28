@@ -17,7 +17,7 @@ test("GET /register sends 200 status code as a response", () => {
         });
 });
 
-test("POST /register redirects to /profile", () => {
+test("POST /petition redirects to /profile", () => {
     return supertest(app)
         .post("/register")
         .then((res) => {
@@ -28,20 +28,24 @@ test("POST /register redirects to /profile", () => {
         });
 });
 
-test("/petition sends 302 when there is no cookie", () => {
+test("GET /petition sends 302 when there is no cookie", () => {
     cookieSession.mockSessionOnce({});
     return supertest(app)
-        .get("/profile")
+        .get("/petition")
         .then((res) => {
             expect(res.statusCode).toBe(302);
         });
 });
 
-test.only("petition /home sends 302 when there is no cookie", () => {
-    cookieSession.mockSessionOnce({});
+test.only("GET /petition sends 200 when there is no cookie", () => {
+    cookieSession.mockSessionOnce({
+        userId: true,
+        // loggedIn: true,
+        signatureId: true,
+    });
     return supertest(app)
-        .get("/profile")
+        .get("/petition")
         .then((res) => {
-            expect(res.statusCode).toBe(302);
+            expect(res.statusCode).toBe(200);
         });
 });

@@ -25,11 +25,17 @@ module.exports.addSignature = (signature, user_id) => {
 
 // INSERT INTO signatures ( first, last, signature) VALUES ($1, $2, $3);
 // module.exports.getAllSignatures = (first, last, signature) => {
-//     // const q = `SELECT first, last FROM signatures`;
+//     const q = `SELECT first, last FROM signatures`;
 //     const params = [first, last, signature];
-//     const q = `INSERT INTO signatures (first, last, signature) VALUES ($1,$2,$3) RETURNING id`;
+//     // const q = `INSERT INTO signatures (first, last, signature) VALUES ($1,$2,$3) RETURNING id`;
 //     return db.query(q, params);
 // };
+module.exports.getUserFirstname = (userId) => {
+    const q = `SELECT users.first, users.last FROM users
+    WHERE id = $1`;
+    const params = [userId];
+    return db.query(q, params);
+};
 
 module.exports.pullSignatures = (signature) => {
     const q = `SELECT signature FROM signatures WHERE id=$1`;
@@ -74,17 +80,17 @@ module.exports.insertUserProfile = (age, city, url, userId) => {
 
 // JOIN
 //SELECT name, age, city, url from the 3 tables
-module.exports.getAllData = () => {
-    const q = `SELECT users.first, users.last, user_profiles.age, user_profiles.city, user_profiles.url
-    FROM signatures
-    JOIN users
-    ON signatures.user_id = users.id
-    JOIN user_profiles
-    ON  users.id = user_profiles.user_id`;
+module.exports.getSignersData = () => {
+    const q = `SELECT users.first, users.last, user_profiles.age, user_profiles.city, user_profiles.url, signatures.signature FROM users
+    LEFT JOIN user_profiles
+    ON users.id = user_profiles.user_id
+    LEFT JOIN signatures
+    ON users.id = signatures.user_id`;
+
     return db.query(q);
 };
 
-module.exports.getByCity = (city) => {
+module.exports.signersByCity = (city) => {
     const q = `SELECT users.first, users.last, user_profiles.age, user_profiles.city, user_profiles.url
     FROM signatures
     JOIN users
@@ -94,5 +100,52 @@ module.exports.getByCity = (city) => {
     WHERE LOWER(city) = LOWER($1)`;
 
     const params = [city];
+    return db.query(q, params);
+};
+
+module.exports.editProfile = (userId) => {
+    const q = `SELECT users.id, users.first, users.last, users.email, user_profiles.age, user_profiles.city, user_profiles.url 
+    FROM users 
+    JOIN user_profiles
+    ON users.id = user_profiles.user_id
+    WHERE user_profiles.user_id = $1`;
+    const params = [userId];
+    return db.query(q, params);
+};
+
+module.exports.updateProfilePassword = (
+    userId,
+    first,
+    last,
+    email,
+    password
+) => {
+    const q = `UPDATE users
+    SET first = $2, last = $3, email = $4, password = $5
+    WHERE id = $1`;
+    const params = [userId, first, last, email, password];
+    return db.query(q, params);
+};
+
+module.exports.updateProfNoPassword = (userId, first, last, email) => {
+    const q = `UPDATE users
+    SET first = $2, last = $3, email = $4
+    WHERE id = $1`;
+    const params = [userId, first, last, email];
+    return db.query(q, params);
+};
+
+module.exports.upsertProfile = (age, city, url, userId) => {
+    const q = `INSERT INTO user_profiles (age, city, url, user_id)
+    VALUES ($1, $2, $3, $4)
+    ON CONFLICT (user_id)
+    DO UPDATE SET age = $1, city = $2, url = $3`;
+    const params = [age, city, url, userId];
+    return db.query(q, params);
+};
+
+module.exports.deleteSignature = (userId) => {
+    const q = `DELETE FROM signatures WHERE user_id = $1`;
+    const params = [userId];
     return db.query(q, params);
 };
