@@ -35,7 +35,7 @@ app.use(express.static("./public"));
 app.use(
     cookieSession({
         maxAge: 1000 * 6 * 50 * 14,
-        secret: secrets.sessionSecret,
+        secret: cookie_sec,
         // 2 weeks
     })
 );
