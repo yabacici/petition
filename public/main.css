@@ -22,15 +22,24 @@ form {
 }
 
 .box {
-    background-image: url("white-waves.png");
-    background-size: cover;
-    border-radius: 30%;
+    /* background-image: url("white-waves.png"); */
+    /* background-size: cover; */
+    /* border-radius: 30%;
     padding: 100px 100px;
     margin: 100px;
+    border: 5px solid black; */
     /* width: 100px;
     height: 100px; */
-    border: 5px solid black;
-    margin-top: 3rem;
+    /* margin-top: 3rem; */
+    width: 400px;
+    margin: auto;
+    margin-top: 10px;
+    text-align: center;
+    box-shadow: 5px 10px 25px rgb(220, 173, 234);
+    background: white;
+    border-radius: 10px;
+    color: black;
+    opacity: 0.8;
 }
 
 label {
@@ -81,18 +90,18 @@ textarea {
 }
 
 button {
-    /* background-color: white; */
-    color: black;
     border: 2px solid #4caf50;
-    /* border: 0; */
+    margin-top: 2px;
+    margin-bottom: 2px;
     background-color: purple;
-    padding: 1rem;
+    /* border: none; */
     /* color: white; */
-    /* margin: 1rem 0; */
+    text-align: center;
+    opacity: 0.6;
+    transition: 0.3s;
+    text-decoration: none;
     cursor: pointer;
-    /* width: 108%; */
-    margin-top: 1rem;
-    align-items: center;
+    /* border-radius: 5%; */
 }
 
 /* button :hover {
@@ -104,10 +113,10 @@ button {
     background-size: cover;
     background-position: center;
     padding: 200px;
-    width: 860px;
+    /* width: 860px; */
     opacity: 0.8;
     margin-top: 1rem;
-    height: 100%;
+    /* height: 100%; */
 }
 
 p {
