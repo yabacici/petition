@@ -4,7 +4,7 @@ Petition app is the first project assigned during a 3-month bootcamp at SPICED A
 
 ## Overview
 
-This is a fullstack online petition where visitors can sign to make their voice heard on an issue. The user can register, log in and sign the petition.
+This is an online petition where visitors can sign to make their voice heard on an issue. The user can register, log in and sign the petition.
 
 ## Built with
 
