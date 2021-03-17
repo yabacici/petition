@@ -7,6 +7,7 @@ body {
     background-color: rgb(114, 45, 57);
     color: black;
     font-family: "Potta One", cursive;
+    /* height: 100%; */
 }
 form {
     display: inline-block;
@@ -33,7 +34,7 @@ form {
     /* margin-top: 3rem; */
     width: 400px;
     margin: auto;
-    margin-top: 10px;
+    margin-top: 20px;
     text-align: center;
     box-shadow: 5px 10px 25px rgb(220, 173, 234);
     background: white;
@@ -90,45 +91,67 @@ textarea {
 }
 
 button {
-    border: 2px solid #4caf50;
-    margin-top: 2px;
-    margin-bottom: 2px;
+    margin-top: 4px;
+    margin-bottom: 4px;
+    border: none;
+    outline: 0;
+    /* display: inline-block; */
+    padding: 8px;
+    color: black;
     background-color: purple;
-    /* border: none; */
-    /* color: white; */
     text-align: center;
-    opacity: 0.6;
-    transition: 0.3s;
-    text-decoration: none;
     cursor: pointer;
-    /* border-radius: 5%; */
+    width: 117%;
+    font-family: "Potta One", cursive;
 }
 
 /* button :hover {
     background-color: aquamarine;
 } */
 
-.banner {
+/* .banner {
     background-image: url("bs.jpg");
     background-size: cover;
     background-position: center;
     padding: 200px;
-    /* width: 860px; */
     opacity: 0.8;
     margin-top: 1rem;
-    /* height: 100%; */
+   
+} */
+/* width: 860px; */
+/* height: 100%; */
+
+.banner {
+    background: #f10cb8;
+    text-align: center;
 }
+/* 
+.copyright {
+    margin-bottom: 30px;
+} */
 
 p {
     color: red;
     font-weight: bold;
     text-align: center;
+    margin-bottom: 100px;
 }
 
 h2 {
     text-align: center;
     color: purple;
     font-weight: bold;
+}
+
+.header-text {
+    background: white;
+    text-align: center;
+    color: purple;
+    font-weight: bold;
+}
+
+.music {
+    background-color: black;
 }
 
 h3 {
@@ -155,4 +178,7 @@ a {
 
 audio {
     margin-top: 1rem;
+    /* background: black; */
+
+    color: crimson;
 }
