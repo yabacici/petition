@@ -11,6 +11,7 @@ This is a fullstack online petition where visitors can sign to make their voice 
 -   HTML
 -   CSS
 -   JavaScript
+-   Node.js
 -   Express handlebars
 -   PostgreSQL
 
@@ -24,3 +25,4 @@ A repo for this project has already been created by SPICED Academy instructors.
     > npm install
 
 ## Usage
+![image](https://user-images.githubusercontent.com/71400566/111545701-c2431900-8776-11eb-9703-06e24183603d.png)
